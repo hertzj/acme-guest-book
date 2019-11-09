@@ -1,0 +1,65 @@
+<html>
+    <head>
+        <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+        <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/react-router-dom/5.0.1/react-router-dom.js'></script>
+    </head>
+    <body>
+        <div id="root"></div>
+    <script type='text/babel'>
+        const { render } = ReactDOM;
+        const { Component } = React;
+        const root = document.querySelector('#root');
+        class App extends Component {
+            constructor() {
+                super();
+                this.state = {
+                    guests: [],
+                };
+            }
+
+            async componentDidMount() {
+                const guests = (await axios.get('/api/guests')).data;
+                this.setState({guests})
+            }
+
+            onClick = async (ev) => {
+                ev.preventDefault()
+                const { guests } = this.state 
+                const input = document.querySelector('input')
+                const name = input.value
+                input.value = '';
+                const guest = (await axios.post('/api/guests', {name})).data;
+                this.setState({guests: [...guests, guest]})
+                // this.setState({guests: guests.concat([guest])})
+            }
+
+            render() {          
+                const { guests } = this.state;
+                const {onClick} = this;
+                if (!guests.length) {
+                    return <div>Waiting for guests...</div>
+                }
+                return (
+                    <div>
+                        <form>
+                            <input type='text' name='newUser' />
+                            <button onClick={onClick}>Sign in</button>
+                        </form>
+                        <ul>
+                            {
+                                guests.map(guest => <li key={guest.id}>{guest.name}</li>)
+                            }
+                        </ul>
+                    </div>
+                )
+            }
+        }
+
+        render(<App />, root);
+
+    </script>
+    </body>
+</html>
